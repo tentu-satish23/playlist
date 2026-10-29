@@ -1,0 +1,180 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: API specification
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: music
+    description: Jamendo catalog and playback operations
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      description: Returns server health status
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+  /music/tracks:
+    get:
+      operationId: searchJamendoTracks
+      tags: [music]
+      summary: Search Jamendo tracks by lyric language and query
+      parameters:
+        - name: language
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [te, hi, en]
+        - name: term
+          in: query
+          required: false
+          schema:
+            type: string
+            maxLength: 120
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 24
+      responses:
+        "200":
+          description: Tracks with full-length streams and track-level licensing data
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/JamendoTrack"
+        "400":
+          description: Invalid language or search parameters
+        "503":
+          description: Jamendo client ID is not configured
+        "502":
+          description: Jamendo catalog unavailable
+  /music/tracks/{id}:
+    get:
+      operationId: getJamendoTrack
+      tags: [music]
+      summary: Get a current stream URL for a saved track
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: "^[0-9]+$"
+      responses:
+        "200":
+          description: Current Jamendo track metadata and stream URL
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JamendoTrack"
+        "400":
+          description: Invalid track ID
+        "404":
+          description: Track not found or no longer available
+        "503":
+          description: Jamendo client ID is not configured
+        "502":
+          description: Jamendo catalog unavailable
+  /music/download/{id}:
+    post:
+      operationId: prepareJamendoDownload
+      tags: [music]
+      summary: Download a track only when Jamendo allows it
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: "^[0-9]+$"
+      responses:
+        "200":
+          description: Download URL, after checking the track's current permission flag
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JamendoDownload"
+        "400":
+          description: Invalid track ID
+        "403":
+          description: Download is not permitted for this track
+        "404":
+          description: Track not found
+        "503":
+          description: Jamendo client ID is not configured
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+    JamendoTrack:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        artist:
+          type: string
+        album:
+          type: string
+        artworkUrl:
+          type: string
+        streamUrl:
+          type: string
+        durationSeconds:
+          type: integer
+        genre:
+          type: string
+        language:
+          type: string
+        licenseUrl:
+          type: string
+        trackUrl:
+          type: string
+        downloadAllowed:
+          type: boolean
+      required:
+        - id
+        - title
+        - artist
+        - album
+        - artworkUrl
+        - streamUrl
+        - durationSeconds
+        - genre
+        - language
+        - licenseUrl
+        - trackUrl
+        - downloadAllowed
+    JamendoDownload:
+      type: object
+      properties:
+        downloadUrl:
+          type: string
+      required:
+        - downloadUrl
+

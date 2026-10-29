@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "Aurora Music"
+description = "A multilingual music discovery and playback app with live chart and search results, playable track previews, language browsing, and an immersive 3D listening interface."
+version = "1.0.0"
+id = "artifacts/aurora-music"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 21249
+
+[services.development]
+run = "pnpm --filter @workspace/aurora-music run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/aurora-music", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/aurora-music/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "21249"
+BASE_PATH = "/"

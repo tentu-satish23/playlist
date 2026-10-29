@@ -1,0 +1,8 @@
+Source,URL,Notes
+Jamendo Developer Portal,https://devportal.jamendo.com/signup,Create a client ID for this application and review current API terms.
+Jamendo API terms,https://devportal.jamendo.com/api_terms_of_use,API use is non-commercial by default under the published terms; confirm commercial licensing separately.
+Jamendo Tracks API,https://developer.jamendo.com/v3.0/tracks,Use the audio field for streaming and audiodownload_allowed before offering downloads.
+Jamendo Tracks File API,https://developer.jamendo.com/v3.0/tracks/file,The API documents separate stream/download actions; check the current permission field first.
+Creative Commons,https://creativecommons.org/licenses/,Review the license linked on each track; attribution and other conditions vary.
+Free Music Archive,https://freemusicarchive.org/,Check track-level license and redistribution permissions before use.
+Internet Archive Audio,https://archive.org/details/audio,Check item-level rights; not all uploads are reusable.

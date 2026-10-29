@@ -1,0 +1,8 @@
+# The format of this file is identical to `.dockerignore`.
+# It is used to reduce the size of deployed images to make the process of publishing faster.
+
+# No need to store the pnpm store twice.
+.local
+/artifacts/aurora-music/music/**/*.mp3
+/artifacts/aurora-music/music/**/*.part
+/artifacts/aurora-music/credits.csv
