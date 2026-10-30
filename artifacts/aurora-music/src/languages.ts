@@ -1,0 +1,31 @@
+export type Lang = string;
+export type Language = { code: Lang; label: string; descriptor: string; prompt: string };
+export const LANGUAGES: Language[] = [
+  { code: 'en', label: 'English', descriptor: 'Independent voices, everywhere', prompt: 'Find English songs' },
+  { code: 'es', label: 'Spanish', descriptor: 'Rhythm from many shores', prompt: 'Find Spanish songs' },
+  { code: 'fr', label: 'French', descriptor: 'Chanson and beyond', prompt: 'Find French songs' },
+  { code: 'de', label: 'German', descriptor: 'From folk to electronic', prompt: 'Find German songs' },
+  { code: 'it', label: 'Italian', descriptor: 'Mediterranean melody', prompt: 'Find Italian songs' },
+  { code: 'pt', label: 'Portuguese', descriptor: 'Brazil and beyond', prompt: 'Find Portuguese songs' },
+  { code: 'ru', label: 'Russian', descriptor: 'Eastern horizons', prompt: 'Find Russian songs' },
+  { code: 'ja', label: 'Japanese', descriptor: 'City lights and quiet rooms', prompt: 'Find Japanese songs' },
+  { code: 'ko', label: 'Korean', descriptor: 'Modern pulse', prompt: 'Find Korean songs' },
+  { code: 'zh', label: 'Chinese', descriptor: 'Wide catalog coverage', prompt: 'Find Chinese songs' },
+  { code: 'ar', label: 'Arabic', descriptor: 'Voices across the region', prompt: 'Find Arabic songs' },
+  { code: 'hi', label: 'Hindi', descriptor: 'Melody with a wide horizon', prompt: 'Find Hindi songs' },
+  { code: 'te', label: 'Telugu', descriptor: 'South India current', prompt: 'Find Telugu songs' },
+  { code: 'ta', label: 'Tamil', descriptor: 'Southern lyric tradition', prompt: 'Find Tamil songs' },
+  { code: 'bn', label: 'Bengali', descriptor: 'Poetry in motion', prompt: 'Find Bengali songs' },
+  { code: 'tr', label: 'Turkish', descriptor: 'Between continents', prompt: 'Find Turkish songs' },
+  { code: 'pl', label: 'Polish', descriptor: 'Central European sounds', prompt: 'Find Polish songs' },
+  { code: 'nl', label: 'Dutch', descriptor: 'Low Countries listening', prompt: 'Find Dutch songs' },
+  { code: 'sv', label: 'Swedish', descriptor: 'Nordic clarity', prompt: 'Find Swedish songs' },
+  { code: 'id', label: 'Indonesian', descriptor: 'Archipelago rhythms', prompt: 'Find Indonesian songs' },
+  { code: 'th', label: 'Thai', descriptor: 'Southeast Asian voice', prompt: 'Find Thai songs' },
+  { code: 'vi', label: 'Vietnamese', descriptor: 'Songs of the peninsula', prompt: 'Find Vietnamese songs' },
+  { code: 'uk', label: 'Ukrainian', descriptor: 'Contemporary and folk', prompt: 'Find Ukrainian songs' },
+  { code: 'el', label: 'Greek', descriptor: 'Aegean frequencies', prompt: 'Find Greek songs' },
+  { code: 'he', label: 'Hebrew', descriptor: 'Mediterranean east', prompt: 'Find Hebrew songs' },
+  { code: 'fa', label: 'Persian', descriptor: 'Poetry and groove', prompt: 'Find Persian songs' },
+];
+export const FEATURED = LANGUAGES.filter(l => ['en','es','fr','hi','te','ja','ko','pt'].includes(l.code));
