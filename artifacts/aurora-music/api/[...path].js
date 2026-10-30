@@ -11,7 +11,7 @@ const JAMENDO_TRACKS_URL = "https://api.jamendo.com/v3.0/tracks/";
 const ALLOWED_IMAGE_HOSTS = new Set(["usercontent.jamendo.com", "images.jamendo.com"]);
 const ALLOWED_TRACK_HOSTS = new Set(["www.jamendo.com", "jamendo.com"]);
 const ALLOWED_LICENSE_HOSTS = new Set(["creativecommons.org"]);
-const LANGS = new Set(["te", "hi", "en"]);
+const LANG_RE = /^[a-z]{2,8}$/i;
 
 function isAllowed(value) {
   return value === true || value === 1 || value === "1" || value === "true";
@@ -79,51 +79,55 @@ async function fetchJamendo(params) {
     url.searchParams.set(key, value);
   }
 
+  let response;
   try {
-    const response = await fetch(url, { signal: AbortSignal.timeout(12_000) });
-    if (!response.ok) return { kind: "unavailable" };
-    const payload = await response.json();
-    if (payload.headers?.status !== "success" || !Array.isArray(payload.results)) {
-      return { kind: "unavailable" };
-    }
-    return { kind: "ok", tracks: payload.results };
+    response = await fetch(url.toString(), {
+      headers: { Accept: "application/json" },
+    });
   } catch {
-    return { kind: "unavailable" };
+    return { kind: "upstream" };
   }
+
+  if (!response.ok) return { kind: "upstream" };
+
+  let body;
+  try {
+    body = await response.json();
+  } catch {
+    return { kind: "upstream" };
+  }
+
+  if (body?.headers?.status !== "success") {
+    return { kind: "upstream" };
+  }
+
+  return { kind: "ok", tracks: Array.isArray(body.results) ? body.results : [] };
 }
 
-function json(res, status, body) {
+function json(res, status, data) {
+  res.statusCode = status;
+  res.setHeader("Content-Type", "application/json; charset=utf-8");
   res.setHeader("Cache-Control", "no-store");
-  res.setHeader("Content-Type", "application/json");
-  res.status(status).json(body);
+  res.end(JSON.stringify(data));
 }
 
 function catalogError(res, result) {
   if (result.kind === "missing-secret") {
     json(res, 503, {
-      error: "Jamendo is not configured. Add JAMENDO_CLIENT_ID in Vercel Environment Variables.",
+      error: "Jamendo is not configured. Set JAMENDO_CLIENT_ID in the project environment.",
     });
     return;
   }
-  json(res, 502, { error: "Jamendo is temporarily unavailable. Please try again." });
-}
-
-function apiPath(req) {
-  const raw = (req.url ?? "/").split("?")[0] || "/";
-  return raw.replace(/^\/api/, "") || "/";
+  json(res, 502, { error: "Jamendo catalog is temporarily unavailable." });
 }
 
 export default async function handler(req, res) {
-  const method = (req.method ?? "GET").toUpperCase();
-  const path = apiPath(req);
-
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-  if (method === "OPTIONS") {
-    res.status(204).end();
-    return;
-  }
+  const method = (req.method || "GET").toUpperCase();
+  const rawPath = req.url ? req.url.split("?")[0] : "/";
+  // Vercel catch-all: /api/foo/bar -> path = /foo/bar after stripping /api
+  let path = rawPath;
+  if (path.startsWith("/api")) path = path.slice(4) || "/";
+  if (!path.startsWith("/")) path = "/" + path;
 
   if (method === "GET" && (path === "/healthz" || path === "/healthz/")) {
     json(res, 200, { status: "ok" });
@@ -136,9 +140,9 @@ export default async function handler(req, res) {
     const limitRaw = Number(req.query.limit ?? 20);
     const limit = Number.isFinite(limitRaw) ? Math.min(50, Math.max(1, Math.trunc(limitRaw))) : 20;
 
-    if (!LANGS.has(language)) {
+    if (!LANG_RE.test(language)) {
       json(res, 400, {
-        error: "Choose Telugu, Hindi, or English and check the search details.",
+        error: "Choose a valid language code (2-8 letters).",
       });
       return;
     }
