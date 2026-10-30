@@ -3,10 +3,22 @@
  * Mirrors artifacts/api-server music + health routes using native fetch
  * so the frontend can call /api/* on the same origin without Express.
  */
-import type { VercelRequest, VercelResponse } from "@vercel/node";
 
 export const config = {
   maxDuration: 30,
+};
+
+type Req = {
+  method?: string;
+  url?: string;
+  query: Record<string, string | string[] | undefined>;
+};
+
+type Res = {
+  setHeader: (name: string, value: string) => void;
+  status: (code: number) => Res;
+  json: (body: unknown) => void;
+  end: () => void;
 };
 
 const JAMENDO_TRACKS_URL = "https://api.jamendo.com/v3.0/tracks/";
@@ -118,13 +130,13 @@ async function fetchJamendo(params: Record<string, string>): Promise<CatalogResu
   }
 }
 
-function json(res: VercelResponse, status: number, body: unknown) {
+function json(res: Res, status: number, body: unknown) {
   res.setHeader("Cache-Control", "no-store");
   res.setHeader("Content-Type", "application/json");
   res.status(status).json(body);
 }
 
-function catalogError(res: VercelResponse, result: CatalogResult) {
+function catalogError(res: Res, result: CatalogResult) {
   if (result.kind === "missing-secret") {
     json(res, 503, {
       error: "Jamendo is not configured. Add JAMENDO_CLIENT_ID in Vercel Environment Variables.",
@@ -134,17 +146,15 @@ function catalogError(res: VercelResponse, result: CatalogResult) {
   json(res, 502, { error: "Jamendo is temporarily unavailable. Please try again." });
 }
 
-/** Strip /api prefix from the request path. */
-function apiPath(req: VercelRequest): string {
+function apiPath(req: Req): string {
   const raw = (req.url ?? "/").split("?")[0] || "/";
   return raw.replace(/^\/api/, "") || "/";
 }
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+export default async function handler(req: Req, res: Res) {
   const method = (req.method ?? "GET").toUpperCase();
   const path = apiPath(req);
 
-  // CORS for browser clients (same-origin is fine; this helps local previews)
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
@@ -153,13 +163,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return;
   }
 
-  // GET /api/healthz
   if (method === "GET" && (path === "/healthz" || path === "/healthz/")) {
     json(res, 200, { status: "ok" });
     return;
   }
 
-  // GET /api/music/tracks
   if (method === "GET" && (path === "/music/tracks" || path === "/music/tracks/")) {
     const language = String(req.query.language ?? "");
     const term = req.query.term != null ? String(req.query.term) : undefined;
@@ -189,7 +197,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return;
   }
 
-  // GET /api/music/tracks/:id
   const trackMatch = path.match(/^\/music\/tracks\/([^/]+)\/?$/);
   if (method === "GET" && trackMatch) {
     const id = decodeURIComponent(trackMatch[1]);
@@ -208,7 +215,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return;
   }
 
-  // POST /api/music/download/:id
   const downloadMatch = path.match(/^\/music\/download\/([^/]+)\/?$/);
   if (method === "POST" && downloadMatch) {
     const id = decodeURIComponent(downloadMatch[1]);
