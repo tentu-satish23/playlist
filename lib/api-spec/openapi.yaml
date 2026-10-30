@@ -37,7 +37,9 @@ paths:
           required: true
           schema:
             type: string
-            enum: [te, hi, en]
+            minLength: 2
+            maxLength: 8
+            description: ISO 639-1 lyric language code (e.g. en, hi, te, es)
         - name: term
           in: query
           required: false
@@ -177,4 +179,3 @@ components:
           type: string
       required:
         - downloadUrl
-

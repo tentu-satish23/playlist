@@ -29,24 +29,15 @@ export interface JamendoDownload {
 }
 
 export type SearchJamendoTracksParams = {
-language: SearchJamendoTracksLanguage;
-/**
- * @maxLength 120
- */
-term?: string;
-/**
- * @minimum 1
- * @maximum 50
- */
-limit?: number;
+  /** ISO 639-1 lyric language code (e.g. en, hi, te) */
+  language: string;
+  /**
+   * @maxLength 120
+   */
+  term?: string;
+  /**
+   * @minimum 1
+   * @maximum 50
+   */
+  limit?: number;
 };
-
-export type SearchJamendoTracksLanguage = typeof SearchJamendoTracksLanguage[keyof typeof SearchJamendoTracksLanguage];
-
-
-export const SearchJamendoTracksLanguage = {
-  te: 'te',
-  hi: 'hi',
-  en: 'en',
-} as const;
-
